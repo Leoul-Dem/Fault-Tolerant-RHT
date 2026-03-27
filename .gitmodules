@@ -1,0 +1,3 @@
+[submodule "libs/net/asio"]
+	path = libs/net/asio
+	url = git@github.com:chriskohlhoff/asio.git
