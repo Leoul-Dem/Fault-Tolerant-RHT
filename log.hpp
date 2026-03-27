@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <array>
 #include <deque>
@@ -7,43 +9,36 @@
 
 #include "./libs/utils.hpp"
 
-
-enum Operation{
+enum class Operation : uint8_t {
     GET,
     PUT,
-    PUT3
-}; 
+    PUT3,
+};
 
-struct Entry{
-    uint64_t entry_idx;
+// One Raft log entry: replicated state-machine command at `index` with Raft `term`.
+struct Entry {
+    log_index_t index;
     uint16_t term;
     Operation op;
     std::array<KVPair, 3> data;
-    
-    Entry(uint64_t entry_idx, uint16_t term, 
-          Operation op, std::array<KVPair, 3> data): 
-        entry_idx(entry_idx), 
-        term(term), 
-        op(op), 
-        data(data)
-    {}     
+
+    Entry(log_index_t index, uint16_t term, Operation op, std::array<KVPair, 3> data)
+        : index(index), term(term), op(op), data(data) {}
 };
 
-class Log{
+class Log {
     std::deque<Entry> logs;
     std::mutex log_mtx;
 
 public:
-    Log();
-    
-    std::optional<Entry> get_log(uint64_t entry_idx);
+    Log() = default;
+
+    std::optional<Entry> get_log(log_index_t entry_idx);
     std::optional<Entry> get_last_log();
-    std::optional<std::vector<Entry>> get_logs_from(uint64_t entry_idx);
-    
-    void append_log(uint64_t entry_idx, uint16_t term, Operation op, std::array<KVPair, 3> data);
+    std::optional<std::vector<Entry>> get_logs_from(log_index_t entry_idx);
+
     void append_log(Entry entry);
-    
-    bool delete_logs_from(uint64_t entry_idx);
+    bool delete_logs_from(log_index_t entry_idx);
 
     void print_logs();
 };
